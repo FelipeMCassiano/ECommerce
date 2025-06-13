@@ -1,9 +1,10 @@
 using Communication.Requests;
+using Communication.Responses;
 
 namespace ECommerce.Application.UseCases.User.Register;
 
 public interface IRegisterUserUseCase
 {
-    Task Execute(UserRequest request);
+    Task<UserResponse> Execute(UserRequest request);
 
 }

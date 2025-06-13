@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.DataAccess.Repositories;
 
-public class UserRepository :  IUserWriteOnlyRepository
+public class UserRepository :  IUserWriteOnlyRepository , IUserReadOnlyRepository
 {
     private readonly ECommerceDbContext _dbContext;
 
@@ -20,7 +20,14 @@ public class UserRepository :  IUserWriteOnlyRepository
 
     public async Task<bool> ExistsUserWithEmailAsync(string email)
     {
-        return await _dbContext.Users.AnyAsync(u => u.IsActive && u.Email == email);
+        return await _dbContext.Users
+            .AnyAsync(u => u.IsActive && u.Email == email);
     }
-    
+
+    public async Task<User?> GetUserByEmail(string email)
+    {
+        return await _dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.IsActive && u.Email == email);
+    }
 }

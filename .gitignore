@@ -3,6 +3,8 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+reset_db.sh
+
 # dotenv files
 .env
 

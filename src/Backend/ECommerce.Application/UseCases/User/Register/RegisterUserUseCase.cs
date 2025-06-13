@@ -1,7 +1,9 @@
 using AutoMapper;
 using Communication.Requests;
+using Communication.Responses;
 using ECommerce.Domain.Repositories;
-using ECommerce.Domain.Services.Security.Password;
+using ECommerce.Domain.Security.Cryptography;
+using ECommerce.Domain.Security.Tokens;
 using Exceptions.BaseExceptions;
 using Exceptions.MessageExceptions;
 
@@ -13,16 +15,18 @@ public class RegisterUserUseCase: IRegisterUserUseCase
     private readonly IMapper _mapper;
     private readonly IPasswordEncoder _passwordEncoder;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IAccessTokenGenerator _accessTokenGenerator;
 
-    public RegisterUserUseCase(IUserWriteOnlyRepository repository, IMapper mapper, IPasswordEncoder passwordEncoder, IUnitOfWork unitOfWork)
+    public RegisterUserUseCase(IUserWriteOnlyRepository repository, IMapper mapper, IPasswordEncoder passwordEncoder, IUnitOfWork unitOfWork, IAccessTokenGenerator accessTokenGenerator)
     {
         _repository = repository;
         _mapper = mapper;
         _passwordEncoder = passwordEncoder;
         _unitOfWork = unitOfWork;
+        _accessTokenGenerator = accessTokenGenerator;
     }
 
-    public async Task Execute(UserRequest request)
+    public async Task<UserResponse> Execute(UserRequest request)
     {
         Validate(request);
         var exists = await _repository.ExistsUserWithEmailAsync(request.Email);
@@ -39,6 +43,11 @@ public class RegisterUserUseCase: IRegisterUserUseCase
         await _repository.AddAsync(user);
         
         await _unitOfWork.CommitAsync();
+
+        return new UserResponse()
+        {
+            Tokens = [_accessTokenGenerator.GenerateToken(user)]
+        };
     }
 
     private static void Validate(UserRequest request)
